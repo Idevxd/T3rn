@@ -1,134 +1,265 @@
-#!/bin/bash
+# !bin/bash
 
-# 脚本保存路径
+# script save path
+
 SCRIPT_PATH="$HOME/t3rn.sh"
 
-# 检查是否为root用户
+
+
+# Check if root user
+
 if [ "$EUID" -ne 0 ]; then 
-    echo -e "${RED}请使用 sudo 运行此脚本${NC}"
-    exit 1
+
+ echo -e "${RED}请使用 sudo run 此 script${NC}"
+
+ exit 1
+
 fi
 
-# 定义仓库地址和目录名称
+
+
+#Define warehouse address and catalog name
+
 REPO_URL="https://github.com/sdohuajia/t3rn-bot.git"
+
 DIR_NAME="t3rn-bot"
+
 PYTHON_FILE="keys_and_addresses.py"
+
 DATA_BRIDGE_FILE="data_bridge.py"
+
 BOT_FILE="bot.py"
-VENV_DIR="t3rn-env"  # 虚拟环境目录
 
-# 检查是否安装了 git
+VENV_DIR="t3rn-env" # virtual directory directory
+
+
+
+# Check if installed git
+
 if ! command -v git &> /dev/null; then
-    echo "Git 未安装，请先安装 Git。"
-    exit 1
+
+ echo "Git not installed, 请先 install Git."
+
+ exit 1
+
 fi
 
-# 检查是否安装了 python3-pip 和 python3-venv
+
+
+# Check if installed python3-pip and python3-venv
+
 if ! command -v pip3 &> /dev/null; then
-    echo "pip 未安装，正在安装 python3-pip..."
-    sudo apt update
-    sudo apt install -y python3-pip
+
+ echo "pip not installed, currently installing python3-pip..."
+
+ sudo apt update
+
+ sudo apt install -y python3-pip
+
 fi
+
+
 
 if ! command -v python3 -m venv &> /dev/null; then
-    echo "python3-venv 未安装，正在安装 python3-venv..."
-    sudo apt update
-    sudo apt install -y python3-venv
+
+ echo "python3-venv not installed, currently installing python3-venv..."
+
+ sudo apt update
+
+ sudo apt install -y python3-venv
+
 fi
 
-# 拉取仓库
+
+
+# fetch warehouse
+
 if [ -d "$DIR_NAME" ]; then
-    echo "目录 $DIR_NAME 已存在，拉取最新更新..."
-    cd "$DIR_NAME" || exit
-    git pull origin main
-else
-    echo "正在克隆仓库 $REPO_URL..."
-    git clone "$REPO_URL"
-    cd "$DIR_NAME" || exit
+
+ echo "Directory $DIR_NAME exists, download latest updates..."
+
+ cd "$DIR_NAME" || exit
+
+ git pull origin main
+
+otherwise
+
+ echo "Clone repository $REPO_URL..."
+
+ git clone "$REPO_URL"
+
+ cd "$DIR_NAME" || exit
+
 fi
 
-echo "已进入目录 $DIR_NAME"
 
-# 创建虚拟环境并激活
-echo "正在创建虚拟环境..."
+
+echo " Already entered directory $DIR_NAME"
+
+
+
+# create virtual environment and activate
+
+echo "I am creating a virtual environment..."
+
 python3 -m venv "$VENV_DIR"
+
 source "$VENV_DIR/bin/activate"
 
-# 升级 pip
-echo "正在升级 pip..."
+
+
+# upgrade pip
+
+echo "Upgrading pip..."
+
 pip install --upgrade pip
 
-# 安装依赖
-echo "正在安装依赖 web3 和 colorama..."
+
+
+#install dependencies
+
+echo "Currently installing dependencies on web3 and colorama..."
+
 pip install web3 colorama
 
-# 提醒用户私钥安全
-echo "警告：请务必确保您的私钥安全！"
-echo "私钥应当保存在安全的位置，切勿公开分享或泄漏给他人。"
-echo "如果您的私钥被泄漏，可能导致您的资产丧失！"
-echo "请输入您的私钥，确保安全操作。"
 
-# 让用户输入私钥和标签
-echo "请输入您的私钥（多个私钥以空格分隔）："
+
+, alert user private key security
+
+echo "Warning: Please ensure your private key is safe!"
+
+echo "The private key should be stored in a secure location, do not share it openly or disclose it to others."
+
+echo "If your private key is leaked, it may lead to the loss of your assets!"
+
+echo "Please enter your private key, ensure secure operation."
+
+
+
+# Let user input private key and label
+
+echo "Enter your private key(multiple private keys)
+
 read -r private_keys_input
 
-echo "请输入您的标签（多个标签以空格分隔，与私钥顺序一致）："
+
+
+echo "Please enter your labels (multiple labels separated by space, matching the order of the private key):"
+
 read -r labels_input
 
-# 检查输入是否一致
+
+
+# Check if input matches
+
 IFS=' ' read -r -a private_keys <<< "$private_keys_input"
+
 IFS=' ' read -r -a labels <<< "$labels_input"
 
+
+
 if [ "${#private_keys[@]}" -ne "${#labels[@]}" ]; then
-    echo "私钥和标签数量不一致，请重新运行脚本并确保它们匹配！"
-    exit 1
+
+ echo "The number of private keys and labels does not match, please re-run the script and ensure that they match!"
+
+ exit 1
+
 fi
 
-# 写入 keys_and_addresses.py 文件
-echo "正在写入 $PYTHON_FILE 文件..."
+
+
+# write keys_and_addresses.py file
+
+echo "Writing $PYTHON_FILE file..."
+
 cat > $PYTHON_FILE <<EOL
-# 此文件由脚本生成
+
+# Generate this file from script
+
+
 
 private_keys = [
-$(printf "    '%s',\n" "${private_keys[@]}")
-]
 
-labels = [
-$(printf "    '%s',\n" "${labels[@]}")
-]
-EOL
+$(printf " '%s',\n" "${private_keys[@]}")
 
-echo "$PYTHON_FILE 文件已生成。"
+,
 
-# 提醒用户私钥安全
-echo "脚本执行完成！所有依赖已安装，私钥和标签已保存到 $PYTHON_FILE 中。"
-echo "请务必妥善保管此文件，避免泄露您的私钥和标签信息！"
 
-# 获取额外的用户输入："ARB - OP SEPOLIA" 和 "OP - ARB"
-echo "请输入 'ARB - OP SEPOLIA' 的值："
+
+label= ,
+
+$(printf " '%s',\n" "${labels[@]}")
+
+,
+
+eol
+
+
+
+echo "$PYTHON_FILE file is already generated."
+
+
+
+# remind user private key security
+
+echo "Script execution completed! All dependencies installed, private keys and labels saved in $PYTHON_FILE 中."
+
+echo "Please save this file to avoid leaking your private key and label information!"
+
+
+
+# Get additional user input："ARB - OP SEPOLIA" 和 "OP - ARB"
+
+echo "请 input 'ARB - OP SEPOLIA' value："
+
 read -r arb_op_sepolia_value
 
-echo "请输入 'OP - ARB' 的值："
+
+
+echo "请 input 'OP - ARB' value："
+
 read -r op_arb_value
 
-# 写入 data_bridge.py 文件
-echo "正在写入 $DATA_BRIDGE_FILE 文件..."
+
+
+# write data_bridge.py file
+
+echo "Writing $DATA_BRIDGE_FILE file..."
+
 cat > $DATA_BRIDGE_FILE <<EOL
-# 此文件由脚本生成
+
+# Generate this file from script
+
+
 
 data_bridge = {
-    # Data bridge Arbitrum Sepolia
-    "ARB - OP SEPOLIA": "$arb_op_sepolia_value",
 
-    # Data bridge OP Sepolia
-    "OP - ARB": "$op_arb_value",
-}
-EOL
+ # Data bridge Arbitrum Sepolia
 
-echo "$DATA_BRIDGE_FILE 文件已生成。"
+ "ARB - OP SEPOLIA": "$arb_op_sepolia_value",
 
-# 提醒用户运行 bot.py
-echo "配置完成，正在运行 bot.py..."
 
-# 运行 bot.py
+
+ # Data bridge OP Sepolia
+
+ "OP - ARB": "$op_arb_value",
+
+,
+
+eol
+
+
+
+echo "$DATA_BRIDGE_FILE file is already generated."
+
+
+
+# remind user to run bot.py
+
+echo "Configuration complete, running bot.py..."
+
+
+
+# run bot.py
+
 python3 $BOT_FILE
